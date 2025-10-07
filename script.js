@@ -36,3 +36,28 @@ document.getElementById("itemForm").addEventListener("submit", async (e) => {
 });
 
 loadItems();
+function renderItems(items) {
+  const itemList = document.getElementById("itemList");
+  itemList.innerHTML = "";
+
+  items.forEach(item => {
+    const itemElement = document.createElement("div");
+    itemElement.className = "item";
+
+    itemElement.innerHTML = `
+      <p><strong>${item.name}</strong> (${item.quantity}) – ${item.location}</p>
+      <svg id="barcode-${item.id}"></svg>
+      <button onclick="deleteItem(${item.id})">🗑️ Delete</button>
+    `;
+
+    itemList.appendChild(itemElement);
+
+    // Generate barcode (based on item ID or name)
+    JsBarcode(`#barcode-${item.id}`, String(item.id), {
+      format: "CODE128",
+      width: 2,
+      height: 50,
+      displayValue: true,
+    });
+  });
+}
