@@ -1,33 +1,32 @@
 const API_URL = "http://localhost:3001/api/items";
 
-// Fetch items from backend and render them
 async function loadItems() {
   try {
     const res = await fetch(API_URL);
     const items = await res.json();
-
     renderItems(items);
   } catch (error) {
-    console.error("Failed to load items:", error);
+    console.error("Error loading items:", error);
   }
 }
 
-// Render list of items with barcode and delete button
 function renderItems(items) {
   const itemList = document.getElementById("itemList");
-  itemList.innerHTML = ""; // Clear previous
+  itemList.innerHTML = "";
 
   items.forEach(item => {
-    const itemElement = document.createElement("div");
-    itemElement.className = "item";
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "item";
 
-    itemElement.innerHTML = `
-      <p><strong>${item.name}</strong> (${item.quantity}) – ${item.location}</p>
+    itemDiv.innerHTML = `
+      <strong>${item.name}</strong> (Qty: ${item.quantity}) - Location: ${item.location}
+      <br/>
       <svg id="barcode-${item.id}"></svg>
+      <br/>
       <button onclick="deleteItem(${item.id})">🗑️ Delete</button>
     `;
 
-    itemList.appendChild(itemElement);
+    itemList.appendChild(itemDiv);
 
     JsBarcode(`#barcode-${item.id}`, String(item.id), {
       format: "CODE128",
@@ -38,8 +37,7 @@ function renderItems(items) {
   });
 }
 
-// Handle form submission to add new item
-document.getElementById("itemForm").addEventListener("submit", async (e) => {
+document.getElementById("itemForm").addEventListener("submit", async e => {
   e.preventDefault();
 
   const name = document.getElementById("name").value.trim();
@@ -57,23 +55,21 @@ document.getElementById("itemForm").addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, quantity, location }),
     });
-
     e.target.reset();
-    loadItems(); // Refresh the list
+    loadItems();
   } catch (error) {
-    console.error("Failed to add item:", error);
+    console.error("Error adding item:", error);
   }
 });
 
-// Delete an item by ID
 async function deleteItem(id) {
   try {
     await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-    loadItems(); // Refresh list
+    loadItems();
   } catch (error) {
-    console.error("Failed to delete item:", error);
+    console.error("Error deleting item:", error);
   }
 }
 
-// Initial load
+// Load items when page loads
 loadItems();
