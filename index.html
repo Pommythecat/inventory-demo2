@@ -1,24 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>School Inventory</title>
-  <!-- JsBarcode library -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+    .item { background: white; padding: 10px; margin: 10px 0; border-left: 5px solid #007bff; }
+    button { margin-top: 5px; }
+  </style>
 </head>
 <body>
   <h1>School Inventory</h1>
-
   <form id="itemForm">
     <input type="text" id="name" placeholder="Item Name" required />
-    <input type="number" id="quantity" placeholder="Quantity" required />
+    <input type="number" id="quantity" placeholder="Quantity" required min="1" />
     <input type="text" id="location" placeholder="Location" required />
     <button type="submit">Add Item</button>
   </form>
 
   <div id="itemList"></div>
 
-  <!-- Your custom JavaScript -->
   <script src="script.js"></script>
 </body>
 </html>
