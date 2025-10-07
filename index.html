@@ -1,26 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>School Inventory</title>
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
-    .item { background: white; padding: 10px; margin: 10px 0; border-left: 5px solid #007bff; }
-    button { margin-top: 5px; }
-  </style>
-</head>
-<body>
-  <h1>School Inventory</h1>
-  <form id="itemForm">
-    <input type="text" id="name" placeholder="Item Name" required />
-    <input type="number" id="quantity" placeholder="Quantity" required min="1" />
-    <input type="text" id="location" placeholder="Location" required />
-    <button type="submit">Add Item</button>
-  </form>
+const API_URL = "http://localhost:3001/api/items";
 
-  <div id="itemList"></div>
+async function loadItems() {
+  try {
+    const res = await fetch(API_URL);
+    const items = await res.json();
+    renderItems(items);
+  } catch (error) {
+    console.error("Error loading items:", error);
+  }
+}
 
-  <script src="script.js"></script>
-</body>
-</html>
+function renderItems(items) {
+  const itemList = document.getElementById("itemList");
+  itemList.innerHTML = "";
+
+  items.forEach(item => {
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "item";
+
+    itemDiv.innerHTML = `
+      <strong>${item.name}</strong> (Qty: ${item.quantity}) - Location: ${item.location}
+      <br/>
+      <svg id="barcode-${item.id}"></svg>
+      <br/>
+      <button onclick="deleteItem(${item.id})">🗑️ Delete</button>
+    `;
+
+    itemList.appendChild(itemDiv);
+
+    JsBarcode(`#barcode-${item.id}`, String(item.id), {
+      format: "CODE128",
+      width: 2,
+      height: 50,
+      displayValue: true,
+    });
+  });
+}
+
+document.getElementById("itemForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value.trim();
+  const quantity = parseInt(document.getElementById("quantity").value);
+  const location = document.getElementById("location").value.trim();
+
+  if (!name || !quantity || !location) {
+    alert("Please fill in all fields");
+    return;
+  }
+
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, quantity, location }),
+    });
+    e.target.reset();
+    loadItems();
+  } catch (error) {
+    console.error("Error adding item:", error);
+  }
+});
+
+async function deleteItem(id) {
+  try {
+    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    loadItems();
+  } catch (error) {
+    console.error("Error deleting item:", error);
+  }
+}
+
+loadItems();
