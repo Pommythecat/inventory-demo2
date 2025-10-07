@@ -1,44 +1,21 @@
-const API_URL = "http://localhost:3001/api/items"; // Later, we will change this to your live URL
+const API_URL = "http://localhost:3001/api/items";
 
+// Fetch items from backend and render them
 async function loadItems() {
-  items.forEach(item => {
-  const li = document.createElement("li");
-  li.innerHTML = `
-    ${item.name} - ${item.quantity} at ${item.location}
-    <br>
-    <svg id="barcode${item.id}"></svg>
-  `;
-  document.getElementById("itemList").appendChild(li);
-  
-  JsBarcode(`#barcode${item.id}`, item.id.toString(), {
-    format: "CODE128",
-    width: 2,
-    height: 40,
-    displayValue: false
-  });
-});
+  try {
+    const res = await fetch(API_URL);
+    const items = await res.json();
 
+    renderItems(items);
+  } catch (error) {
+    console.error("Failed to load items:", error);
+  }
+}
 
-document.getElementById("itemForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const name = document.getElementById("name").value;
-  const quantity = document.getElementById("quantity").value;
-  const location = document.getElementById("location").value;
-
-  await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, quantity, location }),
-  });
-
-  e.target.reset();
-  loadItems();
-});
-
-loadItems();
+// Render list of items with barcode and delete button
 function renderItems(items) {
   const itemList = document.getElementById("itemList");
-  itemList.innerHTML = "";
+  itemList.innerHTML = ""; // Clear previous
 
   items.forEach(item => {
     const itemElement = document.createElement("div");
@@ -52,7 +29,6 @@ function renderItems(items) {
 
     itemList.appendChild(itemElement);
 
-    // Generate barcode (based on item ID or name)
     JsBarcode(`#barcode-${item.id}`, String(item.id), {
       format: "CODE128",
       width: 2,
@@ -61,3 +37,43 @@ function renderItems(items) {
     });
   });
 }
+
+// Handle form submission to add new item
+document.getElementById("itemForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value.trim();
+  const quantity = parseInt(document.getElementById("quantity").value);
+  const location = document.getElementById("location").value.trim();
+
+  if (!name || !quantity || !location) {
+    alert("Please fill in all fields");
+    return;
+  }
+
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, quantity, location }),
+    });
+
+    e.target.reset();
+    loadItems(); // Refresh the list
+  } catch (error) {
+    console.error("Failed to add item:", error);
+  }
+});
+
+// Delete an item by ID
+async function deleteItem(id) {
+  try {
+    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    loadItems(); // Refresh list
+  } catch (error) {
+    console.error("Failed to delete item:", error);
+  }
+}
+
+// Initial load
+loadItems();
